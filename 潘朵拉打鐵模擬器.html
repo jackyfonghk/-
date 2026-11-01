@@ -1,0 +1,671 @@
+<!-- ... html -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潘朵拉打鐵模擬器</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --border-color: #2a364f;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+            color: #fbbf24;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            box-sizing: border-box;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .checkbox-card {
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            padding: 14px 18px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .checkbox-card:hover {
+            border-color: #3b82f6;
+        }
+        .checkbox-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+        .stats-box {
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            text-align: center;
+        }
+        .stat-item .val {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+        .stat-item .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        }
+        .btn-secondary {
+            background: #2a364f;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .result-msg {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: none;
+        }
+        .result-success { background: rgba(34, 197, 94, 0.2); color: var(--success); border: 1px solid var(--success); }
+        .result-fail { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        
+        .history-box {
+            background: #0b0f19;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 220px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 4px solid var(--border-color);
+        }
+        .history-item.success { border-left-color: var(--success); }
+        .history-item.fail { border-left-color: var(--danger); }
+        .history-time { color: var(--text-muted); font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>🔨 潘朵拉打鐵模擬器</h2>
+
+    <!-- 裝備價格 -->
+    <div class="section" style="background: #0b0f19; padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+        <label style="margin-bottom: 6px;">⚔️ 要強化的裝備價格 (僅供參考，不計入消耗)</label>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <input type="number" id="equipmentPrice" value="100" style="width: 100%;">
+            <span style="color: var(--text-muted); font-weight: bold;">G</span>
+        </div>
+    </div>
+
+    <!-- 目標等級 -->
+    <div class="section">
+        <label>目標強化等級</label>
+        <select id="targetLevel" onchange="renderStepConfigTable(); updateChance();">
+            <option value="1">強化到 +1 (基礎 80%)</option>
+            <option value="2">強化到 +2 (基礎 70%)</option>
+            <option value="3">強化到 +3 (基礎 60%)</option>
+            <option value="4">強化到 +4 (基礎 45%)</option>
+            <option value="5" selected>強化到 +5 (基礎 25%)</option>
+            <option value="6">強化到 +6 (基礎 5%)</option>
+            <option value="7">強化到 +7 (基礎 0%)</option>
+            <option value="8">強化到 +8 (基礎 -5%)</option>
+            <option value="9">強化到 +9 (基礎 -10%)</option>
+            <option value="10">強化到 +10 (基礎 -15%)</option>
+        </select>
+    </div>
+
+    <!-- 輔助道具與材料 -->
+    <div class="section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="margin-bottom: 0;">💎 預設強化輔助道具與材料</label>
+            <span style="font-size: 0.85rem; color: #fbbf24;">石頭 3選1 | 金槌可自由搭配</span>
+        </div>
+        <div class="checkbox-group">
+            <div class="checkbox-card" onclick="selectStone('t1')">
+                <div class="checkbox-row">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="radio" name="stoneGroup" id="t1Check" onchange="syncToAllSteps(); updateChance();" onclick="event.stopPropagation()" style="width:20px; height:20px; cursor:pointer;" checked>
+                        <span style="color:#f87171;">🔴 一級石頭 (-20% 機率)</span>
+                    </div>
+                    <div onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--text-muted);">
+                        <span>單次:</span>
+                        <input type="number" id="t1Cost" value="300" oninput="updateChance()" style="width: 100px; padding: 6px 10px; font-size: 0.95rem;"> G
+                    </div>
+                </div>
+            </div>
+            <div class="checkbox-card" onclick="selectStone('t2')">
+                <div class="checkbox-row">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="radio" name="stoneGroup" id="t2Check" onchange="syncToAllSteps(); updateChance();" onclick="event.stopPropagation()" style="width:20px; height:20px; cursor:pointer;">
+                        <span style="color:#4ade80;">🟢 二級石頭 (-10% 機率)</span>
+                    </div>
+                    <div onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--text-muted);">
+                        <span>單次:</span>
+                        <input type="number" id="t2Cost" value="3000" oninput="updateChance()" style="width: 100px; padding: 6px 10px; font-size: 0.95rem;"> G
+                    </div>
+                </div>
+            </div>
+            <div class="checkbox-card" onclick="selectStone('t3')">
+                <div class="checkbox-row">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="radio" name="stoneGroup" id="t3Check" onchange="syncToAllSteps(); updateChance();" onclick="event.stopPropagation()" style="width:20px; height:20px; cursor:pointer;">
+                        <span style="color:#c084fc;">🟣 三級石頭 (-5% 機率)</span>
+                    </div>
+                    <div onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--text-muted);">
+                        <span>單次:</span>
+                        <input type="number" id="t3Cost" value="20000" oninput="updateChance()" style="width: 100px; padding: 6px 10px; font-size: 0.95rem;"> G
+                    </div>
+                </div>
+            </div>
+            <div class="checkbox-card" onclick="toggleCheck('hammerCheck', event)">
+                <div class="checkbox-row">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="hammerCheck" onchange="syncToAllSteps(); updateChance();" onclick="event.stopPropagation()" style="width:20px; height:20px; cursor:pointer;">
+                        <span style="color:#38bdf8;">🔨 金槌 (+20% 機率)</span>
+                    </div>
+                    <div onclick="event.stopPropagation()" style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; color: var(--text-muted);">
+                        <span>單次:</span>
+                        <input type="number" id="hammerCost" value="5000" oninput="updateChance()" style="width: 100px; padding: 6px 10px; font-size: 0.95rem;"> G
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 各階段詳細自訂設定 -->
+    <div class="section" style="background: #0b0f19; padding: 14px 18px; border-radius: 10px; border: 1px solid var(--border-color);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <label style="margin-bottom: 0;">🛠️ 各強化階段個別材料設定</label>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">可自訂每一級要用哪顆石頭與金槌</span>
+        </div>
+        <div id="stepConfigContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+
+    <!-- 即時預覽機率與期望值 -->
+    <div class="section" style="background:#0b0f19; padding:16px; border-radius:10px; text-align:center; border:1px solid var(--border-color); display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <div>
+            <span style="font-size:0.9rem; color:var(--text-muted);">最終計算成功率</span>
+            <div id="finalChanceText" style="font-size:1.8rem; font-weight:bold; color:#38bdf8; margin-top:4px;">80%</div>
+        </div>
+        <div>
+            <span style="font-size:0.9rem; color:var(--text-muted);">理論期望總花費</span>
+            <div id="perAttemptCostText" style="font-size:1.8rem; font-weight:bold; color:#fbbf24; margin-top:4px;">0 G</div>
+            <div id="expectedAttemptsText" style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">預期平均嘗試次數: 1.25 次</div>
+        </div>
+    </div>
+
+    <!-- 執行按鈕 -->
+    <div class="section" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button class="btn" onclick="runEnhanceAttempt()">⚡ 單次強化嘗試</button>
+        <button class="btn" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);" onclick="enhanceUntilSuccess()">🔥 自動連續直到成功</button>
+    </div>
+    <div class="section" style="margin-top: -10px;">
+        <button class="btn btn-secondary" onclick="resetStats()">🔄 歸零重置</button>
+    </div>
+
+    <!-- 結果提示 -->
+    <div id="resultMsg" class="result-msg"></div>
+
+    <!-- 統計數據 -->
+    <div class="section" style="margin-top: 20px;">
+        <label>統計數據</label>
+        <div class="stats-box">
+            <div class="stat-item">
+                <div class="val" id="statTotal">0</div>
+                <div class="label">總嘗試次數</div>
+            </div>
+            <div class="stat-item">
+                <div class="val" id="statSuccess">0</div>
+                <div class="label">成功次數</div>
+            </div>
+            <div class="stat-item">
+                <div class="val" id="statTotalCost">0 G</div>
+                <div class="label">實際總花費</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 強化歷程記錄 -->
+    <div class="section" style="margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="margin-bottom: 0;">📜 強化嘗試記錄</label>
+            <span style="font-size: 0.8rem; color: var(--text-muted);" id="historyCount">共 0 筆記錄</span>
+        </div>
+        <div class="history-box" id="historyBox">
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;">尚未有強化記錄，請點擊上方按鈕開始嘗試！</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const baseChances = {
+        1: 80, 2: 70, 3: 60, 4: 45, 5: 25,
+        6: -5, 7: -10, 8: -13, 9: -14, 10: -16
+    };
+
+    let stats = {
+        total: 0,
+        success: 0,
+        totalCost: 0
+    };
+
+    let historyList = [];
+    let stepSettings = {};
+
+    function selectStone(type) {
+        if (type === 't1') document.getElementById('t1Check').checked = true;
+        if (type === 't2') document.getElementById('t2Check').checked = true;
+        if (type === 't3') document.getElementById('t3Check').checked = true;
+        syncToAllSteps();
+        updateChance();
+    }
+
+    function toggleCheck(id, event) {
+        if(event) event.stopPropagation();
+        const chk = document.getElementById(id);
+        chk.checked = !chk.checked;
+        syncToAllSteps();
+        updateChance();
+    }
+
+    function getGlobalSelectedStone() {
+        if (document.getElementById('t2Check').checked) return 't2';
+        if (document.getElementById('t3Check').checked) return 't3';
+        return 't1';
+    }
+
+    function getGlobalHammer() {
+        return document.getElementById('hammerCheck').checked;
+    }
+
+    function syncToAllSteps() {
+        const targetLevel = parseInt(document.getElementById('targetLevel').value);
+        const globalStone = getGlobalSelectedStone();
+        const globalHammer = getGlobalHammer();
+
+        for (let i = 1; i <= targetLevel; i++) {
+            if (!stepSettings[i]) {
+                stepSettings[i] = { stone: globalStone, hammer: globalHammer };
+            } else {
+                stepSettings[i].stone = globalStone;
+                stepSettings[i].hammer = globalHammer;
+            }
+        }
+        renderStepConfigTable();
+    }
+
+    function renderStepConfigTable() {
+        const targetLevel = parseInt(document.getElementById('targetLevel').value);
+        const container = document.getElementById('stepConfigContainer');
+        let html = '';
+
+        for (let i = 1; i <= targetLevel; i++) {
+            if (!stepSettings[i]) {
+                stepSettings[i] = { stone: getGlobalSelectedStone(), hammer: getGlobalHammer() };
+            }
+            
+            // 超過 +5 (即 +5 -> +6 以上) 強制使用三級石頭與金槌
+            let isForced = i >= 6;
+            if (isForced) {
+                stepSettings[i].stone = 't3';
+                stepSettings[i].hammer = true;
+            }
+
+            const cfg = stepSettings[i];
+            const currentChance = calculateChanceForLevel(i);
+
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #0b0f19; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border-color); gap: 10px;">
+                    <div style="font-weight: bold; color: #fbbf24; min-width: 65px;">+${i-1} → +${i}</div>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                        <select ${isForced ? 'disabled style="padding: 6px 8px; font-size: 0.85rem; width: 155px; opacity: 0.7; cursor: not-allowed;"' : 'onchange="updateStepStone(' + i + ', this.value)" style="padding: 6px 8px; font-size: 0.85rem; width: 155px;"'}>
+                            <option value="t1" ${cfg.stone === 't1' ? 'selected' : ''}>🔴 一級 (-20%)</option>
+                            <option value="t2" ${cfg.stone === 't2' ? 'selected' : ''}>🟢 二級 (-10%)</option>
+                            <option value="t3" ${cfg.stone === 't3' ? 'selected' : ''}>🟣 三級 (-5%)</option>
+                        </select>
+                        <label style="display: flex; align-items: center; gap: 4px; margin-bottom: 0; cursor: ${isForced ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; color: var(--text-main); opacity: ${isForced ? '0.7' : '1'};">
+                            <input type="checkbox" ${cfg.hammer ? 'checked' : ''} ${isForced ? 'disabled' : 'onchange="updateStepHammer(' + i + ', this.checked)"'} style="width: 16px; height: 16px; cursor: ${isForced ? 'not-allowed' : 'pointer'};">
+                            🔨金槌
+                        </label>
+                        <div style="min-width: 45px; text-align: right; font-weight: bold; color: #38bdf8; font-size: 0.95rem;">${currentChance}%</div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function updateStepStone(level, stoneVal) {
+        if (!stepSettings[level]) stepSettings[level] = {};
+        stepSettings[level].stone = stoneVal;
+        renderStepConfigTable();
+        updateChance();
+    }
+
+    function updateStepHammer(level, hammerVal) {
+        if (!stepSettings[level]) stepSettings[level] = {};
+        stepSettings[level].hammer = hammerVal;
+        renderStepConfigTable();
+        updateChance();
+    }
+
+    function calculateChanceForLevel(level) {
+        let base = baseChances[level] || 0;
+        const cfg = stepSettings[level] || { stone: 't1', hammer: false };
+        
+        if (level >= 6) {
+            cfg.stone = 't3';
+            cfg.hammer = true;
+        }
+
+        if (cfg.stone === 't1') base -= 20;
+        else if (cfg.stone === 't2') base -= 10;
+        else if (cfg.stone === 't3') base -= 5;
+
+        if (cfg.hammer) base += 20;
+        return base;
+    }
+
+    function getCostForConfig(stone, hammer) {
+        let stoneCost = 300;
+        if (stone === 't2') stoneCost = parseInt(document.getElementById('t2Cost').value) || 0;
+        else if (stone === 't3') stoneCost = parseInt(document.getElementById('t3Cost').value) || 0;
+        else stoneCost = parseInt(document.getElementById('t1Cost').value) || 0;
+
+        let hammerCost = hammer ? (parseInt(document.getElementById('hammerCost').value) || 0) : 0;
+        return stoneCost + hammerCost;
+    }
+
+    function updateChance() {
+        const targetLevel = parseInt(document.getElementById('targetLevel').value);
+        let finalChance = 1;
+        let cumulativeCost = 0;
+
+        for (let i = 1; i <= targetLevel; i++) {
+            if (!stepSettings[i]) {
+                stepSettings[i] = { stone: getGlobalSelectedStone(), hammer: getGlobalHammer() };
+            }
+            // 確保成功率最低保底為 1%，避免分母為 0 導致期望費用無限放大
+            const rawChance = calculateChanceForLevel(i);
+            const effectiveChance = Math.max(1, rawChance) / 100;
+            
+            finalChance *= effectiveChance;
+
+            const cost = getCostForConfig(stepSettings[i].stone, stepSettings[i].hammer);
+            cumulativeCost = (cost + cumulativeCost) / effectiveChance;
+        }
+
+        const finalPercent = (finalChance * 100).toFixed(2);
+        document.getElementById('finalChanceText').innerText = finalPercent + '%';
+        document.getElementById('perAttemptCostText').innerText = Math.round(cumulativeCost).toLocaleString() + ' G';
+        document.getElementById('expectedAttemptsText').innerText = `理論完整衝到 +${targetLevel} 的期望總花費`;
+    }
+
+    function runEnhanceAttempt() {
+        const targetLevel = parseInt(document.getElementById('targetLevel').value);
+        let currentLevel = 0;
+        let totalBatchCost = 0;
+        let sessionSteps = [];
+        let finalSuccess = true;
+        let failedAt = null;
+
+        stats.total++;
+
+        for (let lvl = 1; lvl <= targetLevel; lvl++) {
+            if (!stepSettings[lvl]) {
+                stepSettings[lvl] = { stone: getGlobalSelectedStone(), hammer: getGlobalHammer() };
+            }
+            if (lvl >= 6) {
+                stepSettings[lvl].stone = 't3';
+                stepSettings[lvl].hammer = true;
+            }
+            const cfg = stepSettings[lvl];
+            const rawChance = calculateChanceForLevel(lvl);
+            const effectiveChance = Math.max(1, Math.min(100, rawChance));
+            const currentCost = getCostForConfig(cfg.stone, cfg.hammer);
+            
+            totalBatchCost += currentCost;
+            stats.totalCost += currentCost;
+
+            const roll = Math.random() * 100;
+            const isSuccess = roll < effectiveChance;
+
+            sessionSteps.push({
+                level: lvl,
+                stone: cfg.stone,
+                hammer: cfg.hammer,
+                chance: rawChance,
+                roll: roll.toFixed(1),
+                cost: currentCost,
+                success: isSuccess
+            });
+
+            if (isSuccess) {
+                currentLevel = lvl;
+            } else {
+                finalSuccess = false;
+                failedAt = lvl;
+                break;
+            }
+        }
+
+        if (finalSuccess) {
+            stats.success++;
+        }
+
+        const now = new Date();
+        const timeString = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0').slice(0, 2);
+
+        const record = {
+            id: stats.total,
+            time: timeString,
+            targetLevel: targetLevel,
+            success: finalSuccess,
+            failedAt: failedAt,
+            reachedLevel: currentLevel,
+            totalCost: totalBatchCost,
+            steps: sessionSteps
+        };
+        historyList.unshift(record);
+        if (historyList.length > 50) historyList.pop();
+
+        const msgDiv = document.getElementById('resultMsg');
+        msgDiv.style.display = 'block';
+
+        if (finalSuccess) {
+            msgDiv.className = 'result-msg result-success';
+            msgDiv.innerText = `🎉 成功達到 +${targetLevel}！總共花費 ${totalBatchCost.toLocaleString()} G`;
+        } else {
+            msgDiv.className = 'result-msg result-fail';
+            msgDiv.innerText = `💥 在挑戰 +${failedAt} 時失敗！停留在 +${currentLevel}，單次花費 ${totalBatchCost.toLocaleString()} G`;
+        }
+
+        updateStatsDisplay();
+        updateHistoryDisplay();
+        return { success: finalSuccess, cost: totalBatchCost };
+    }
+
+    function enhanceUntilSuccess() {
+        let attempts = 0;
+        const maxAttempts = 10000;
+        let result = { success: false, cost: 0 };
+        let cumulativeBatchCost = 0;
+        const targetLevelSelect = document.getElementById('targetLevel');
+        const targetLevel = parseInt(targetLevelSelect.value);
+
+        while (!result.success && attempts < maxAttempts) {
+            attempts++;
+            const singleRun = runEnhanceAttempt();
+            cumulativeBatchCost += singleRun.cost;
+            if (singleRun.success) {
+                result.success = true;
+                break;
+            }
+        }
+
+        const msgDiv = document.getElementById('resultMsg');
+        msgDiv.style.display = 'block';
+
+        if (result.success) {
+            msgDiv.className = 'result-msg result-success';
+            msgDiv.innerText = `🎉 自動連續嘗試 ${attempts} 次後成功達到目標 +${targetLevel}！累積總花費 ${cumulativeBatchCost.toLocaleString()} G`;
+        } else {
+            msgDiv.className = 'result-msg result-fail';
+            msgDiv.innerText = `⚠️ 已自動嘗試 ${maxAttempts} 次仍未成功，累積總花費 ${cumulativeBatchCost.toLocaleString()} G，請再試一次！`;
+        }
+    }
+
+    function resetStats() {
+        stats.total = 0;
+        stats.success = 0;
+        stats.totalCost = 0;
+        historyList = [];
+        document.getElementById('resultMsg').style.display = 'none';
+        updateStatsDisplay();
+        updateHistoryDisplay();
+    }
+
+    function updateStatsDisplay() {
+        document.getElementById('statTotal').innerText = stats.total;
+        document.getElementById('statSuccess').innerText = stats.success;
+        document.getElementById('statTotalCost').innerText = stats.totalCost.toLocaleString() + ' G';
+    }
+
+    function updateHistoryDisplay() {
+        const box = document.getElementById('historyBox');
+        document.getElementById('historyCount').innerText = `共 ${historyList.length} 筆記錄`;
+
+        if (historyList.length === 0) {
+            box.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">尚未有強化記錄，請點擊上方按鈕開始嘗試！</div>`;
+            return;
+        }
+
+        let html = '';
+        historyList.forEach(item => {
+            const statusClass = item.success ? 'success' : 'fail';
+            const statusText = item.success ? 
+                `<span style="color:var(--success); font-weight:bold;">成功封頂 +${item.targetLevel}</span>` : 
+                `<span style="color:var(--danger); font-weight:bold;">在 +${item.failedAt} 失敗 (停在 +${item.reachedLevel})</span>`;
+
+            let stepsHtml = '';
+            item.steps.forEach(s => {
+                const stepColor = s.success ? 'var(--success)' : 'var(--danger)';
+                const stoneName = s.stone === 't1' ? '一級' : (s.stone === 't2' ? '二級' : '三級');
+                const hammerText = s.hammer ? '+金槌' : '';
+                stepsHtml += `<div style="font-size:0.8rem; color:var(--text-muted); margin-left:10px;">• 衝 +${s.level} [${stoneName}石頭${hammerText}]: 成功率 <span style="color:${stepColor}">${s.chance}%</span> (${s.cost.toLocaleString()} G) ➔ ${s.success ? '成功' : '失敗'}</div>`;
+            });
+
+            html += `
+                <div class="history-item ${statusClass}" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                    <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="history-time">${item.time}</div>
+                        <div style="color:var(--text-muted); font-size:0.85rem;">總花費: ${item.totalCost.toLocaleString()} G</div>
+                    </div>
+                    <div style="font-weight:600; font-size:0.95rem;">目標: <span style="color:#fbbf24;">+${item.targetLevel}</span> | ${statusText}</div>
+                    <div style="width: 100%; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 4px; margin-top: 2px;">
+                        ${stepsHtml}
+                    </div>
+                </div>
+            `;
+        });
+        box.innerHTML = html;
+    }
+
+    syncToAllSteps();
+    renderStepConfigTable();
+    updateChance();
+</script>
+</body>
+</html>
